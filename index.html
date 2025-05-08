@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Meme Generator Mini App</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 1rem;
+      max-width: 400px;
+      margin: auto;
+      text-align: center;
+    }
+    select, input {
+      width: 100%;
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      font-size: 1rem;
+    }
+    button {
+      padding: 0.75rem;
+      margin-top: 1rem;
+      width: 100%;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    img {
+      max-width: 100%;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h2>🖼️ Meme Generator</h2>
+
+  <select id="template">
+    <option value="181913649">Drake Hotline Bling</option>
+    <option value="112126428">Distracted Boyfriend</option>
+    <option value="87743020">Two Buttons</option>
+    <option value="61579">One Does Not Simply</option>
+  </select>
+
+  <input type="text" id="topText" placeholder="Top Text" />
+  <input type="text" id="bottomText" placeholder="Bottom Text" />
+  <button onclick="generateMeme()">🎨 Generate Meme</button>
+
+  <div id="result">
+    <img id="memeImage" src="" alt="" />
+    <button id="castBtn" onclick="castMeme()" style="display:none;">📣 Post to Farcaster</button>
+  </div>
+
+  <script>
+    let memeUrl = "";
+
+    async function generateMeme() {
+      const templateId = document.getElementById('template').value;
+      const topText = document.getElementById('topText').value;
+      const bottomText = document.getElementById('bottomText').value;
+
+      // Вставь сюда свои креды
+      const username = "YOUR_IMGFLIP_USERNAME";
+      const password = "YOUR_IMGFLIP_PASSWORD";
+
+      const response = await fetch("https://api.imgflip.com/caption_image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({
+          template_id: templateId,
+          username: username,
+          password: password,
+          text0: topText,
+          text1: bottomText
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        memeUrl = data.data.url;
+        document.getElementById("memeImage").src = memeUrl;
+        document.getElementById("castBtn").style.display = "block";
+      } else {
+        alert("Failed to generate meme");
+      }
+    }
+
+    function castMeme() {
+      if (memeUrl) {
+        window.parent.postMessage({
+          type: "farcaster/cast",
+          text: `Check out this meme! ${memeUrl}`
+        }, "*");
+      }
+    }
+  </script>
+</body>
+</html>
